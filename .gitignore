@@ -35,3 +35,19 @@ id_rsa
 id_rsa.pub
 config/secrets.yml
 node_modules/
+# koshop local env / secrets
+koshop_deploy_secrets*.txt
+# Live Helper Chat runtime / secrets
+third_party/live-helper-chat/lhc_web/cache/
+third_party/live-helper-chat/lhc_web/var/
+third_party/live-helper-chat/lhc_web/settings/settings.ini.php
+third_party/live-helper-chat/lhc_web/settings/settings.ini.override.php
+third_party/live-helper-chat/lhc_web/settings/siteaccess/*/site.ini.php
+third_party/live-helper-chat/lhc_web/settings/siteaccess/*/site.ini.append.php
+third_party/live-helper-chat/lhc_web/settings/siteaccess/*/database.php
+third_party/live-helper-chat/**/*.log
+# frontend dependencies
+vendor/
+dist/
+third_party/live-helper-chat/lhc_web/lib/vendor/elasticsearch/elasticsearch/.ci/certs/
+third_party/live-helper-chat/lhc_web/lib/core/lhxmp/google/io/cacerts.pem
