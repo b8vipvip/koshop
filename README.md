@@ -27,7 +27,7 @@ koshop 是独立于 koko 的虚拟商品商城与客服系统源码仓库。
 
 ## 二开原则
 
-- 不再使用 Chatwoot。
+- 客服统一使用 Live Helper Chat；历史客服方案已停用。
 - Live Helper Chat 必须从 iframe 临时集成升级为主题/模块级深度集成。
 - 统一卖家后台通过服务端代理 API 对接 Dujiao-Next 和 Live Helper Chat。
 - 不允许把数据库密码、支付密钥、SSH key、证书文件提交到 GitHub。
