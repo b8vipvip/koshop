@@ -1,0 +1,32 @@
+# OS / editor
+.DS_Store
+.idea/
+.vscode/
+
+# env files
+.env
+.env.*
+!.env.example
+
+# logs
+*.log
+logs/
+
+# runtime
+storage/
+runtime/
+tmp/
+cache/
+
+# secrets
+*.pem
+*.key
+*.crt
+*.p12
+*.pfx
+
+# backups
+*.bak
+*.backup
+*_backup/
+backup/
