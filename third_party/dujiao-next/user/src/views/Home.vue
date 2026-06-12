@@ -1,5 +1,6 @@
 <template>
-  <div class="home-page min-h-screen theme-page">
+  <div class="home-page relative min-h-screen theme-page">
+    <CustomerServiceButton compact class="fixed right-4 top-20 z-30 lg:absolute lg:right-8 lg:top-24" />
 
     <!-- ==================== LIST MODE ==================== -->
     <template v-if="templateMode === 'list'">
@@ -387,6 +388,7 @@ import ProductQuickBuy from '../components/ProductQuickBuy.vue'
 import CategorySidebar from '../components/CategorySidebar.vue'
 import PaginationNav from '../components/PaginationNav.vue'
 import AnnouncementModal from '../components/AnnouncementModal.vue'
+import CustomerServiceButton from '../components/CustomerServiceButton.vue'
 import { useAnnouncement, type HomeAnnouncement } from '../composables/useAnnouncement'
 
 const router = useRouter()

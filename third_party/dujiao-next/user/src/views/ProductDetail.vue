@@ -332,13 +332,14 @@
                     class="w-full px-6 py-4 theme-btn-primary font-bold rounded-xl transition-colors min-h-[48px]">
                     {{ t('productDetail.loginToBuy') }}
                   </button>
-                  <div v-else class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div v-else class="grid grid-cols-[48px_minmax(0,1fr)_minmax(0,1fr)] gap-2 sm:gap-3">
+                    <CustomerServiceButton compact />
                     <button @click="addToCart" :disabled="!canPurchase"
-                      class="px-6 py-4 border theme-btn-secondary font-bold rounded-xl cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 min-h-[48px]">
+                      class="px-2 sm:px-4 py-3 border theme-btn-secondary text-xs sm:text-sm font-bold rounded-xl cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 min-h-[48px]">
                       {{ t('productDetail.addToCart') }}
                     </button>
                     <button @click="buyNow" :disabled="!canPurchase"
-                      class="px-6 py-4 theme-btn-primary font-bold rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 min-h-[48px]">
+                      class="px-2 sm:px-4 py-3 theme-btn-primary text-xs sm:text-sm font-bold rounded-xl transition-colors cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 min-h-[48px]">
                       {{ t('productDetail.buyNow') }}
                     </button>
                   </div>
@@ -475,6 +476,7 @@ import ProductImageGallery from '../components/product/ProductImageGallery.vue'
 import ProductMobileBar from '../components/product/ProductMobileBar.vue'
 import BreadcrumbNav from '../components/BreadcrumbNav.vue'
 import EmptyState from '../components/EmptyState.vue'
+import CustomerServiceButton from '../components/CustomerServiceButton.vue'
 
 const route = useRoute()
 const router = useRouter()
