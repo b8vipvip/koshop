@@ -30,3 +30,8 @@ cache/
 *.backup
 *_backup/
 backup/
+# koshop local sensitive files
+id_rsa
+id_rsa.pub
+config/secrets.yml
+node_modules/
