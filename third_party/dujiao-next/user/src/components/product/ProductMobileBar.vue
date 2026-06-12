@@ -8,7 +8,7 @@
     leave-to-class="translate-y-full opacity-0">
     <div v-if="visible"
       class="lg:hidden fixed bottom-0 left-0 right-0 z-40 theme-panel-strong backdrop-blur-xl border-t theme-border shadow-2xl theme-safe-bottom">
-      <div class="flex items-center gap-3 px-4 py-3">
+      <div class="flex items-center gap-2 px-3 py-3">
         <!-- Price -->
         <div class="flex-1 min-w-0">
           <span v-if="showMemberPrice" class="theme-price-sm text-amber-600 dark:text-amber-300 truncate block">
@@ -28,17 +28,18 @@
           </span>
         </div>
         <!-- Actions -->
+        <CustomerServiceButton compact class="h-11 w-11" />
         <button v-if="requiresLogin" @click="$emit('goLogin')"
-          class="px-5 py-3 theme-btn-primary font-bold rounded-xl text-sm min-h-[44px]">
+          class="px-2 py-3 theme-btn-primary font-bold rounded-xl text-xs min-h-[44px]">
           {{ t('productDetail.loginToBuy') }}
         </button>
         <template v-else>
           <button @click="$emit('addToCart')" :disabled="!canPurchase"
-            class="px-4 py-3 border theme-btn-secondary font-bold rounded-xl text-sm cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px]">
+            class="px-2 py-3 border theme-btn-secondary font-bold rounded-xl text-xs cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px]">
             {{ t('productDetail.addToCart') }}
           </button>
           <button @click="$emit('buyNow')" :disabled="!canPurchase"
-            class="px-5 py-3 theme-btn-primary font-bold rounded-xl text-sm cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px]">
+            class="px-2 py-3 theme-btn-primary font-bold rounded-xl text-xs cursor-pointer disabled:cursor-not-allowed disabled:opacity-50 min-h-[44px]">
             {{ t('productDetail.buyNow') }}
           </button>
         </template>
@@ -49,6 +50,7 @@
 
 <script setup lang="ts">
 import { useI18n } from 'vue-i18n'
+import CustomerServiceButton from '../CustomerServiceButton.vue'
 
 const { t } = useI18n()
 

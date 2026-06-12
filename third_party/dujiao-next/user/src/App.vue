@@ -15,6 +15,7 @@
     <Toast />
     <ConfirmDialog />
     <BackToTop />
+    <MobilePageBackButton />
     <MobileBottomNav />
   </div>
 </template>
@@ -29,6 +30,7 @@ import ConfirmDialog from './components/ConfirmDialog.vue'
 import ErrorBoundary from './components/ErrorBoundary.vue'
 import BackToTop from './components/BackToTop.vue'
 import MobileBottomNav from './components/MobileBottomNav.vue'
+import MobilePageBackButton from './components/MobilePageBackButton.vue'
 
 // config 由 router.beforeEach 统一加载，无需在此重复调用
 const appStore = useAppStore()

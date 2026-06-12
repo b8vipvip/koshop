@@ -1,5 +1,5 @@
 <template>
-  <nav class="lg:hidden fixed bottom-0 left-0 right-0 z-40 theme-panel-strong backdrop-blur-xl border-t theme-border theme-safe-bottom">
+  <nav v-if="showBottomNav" class="lg:hidden fixed bottom-0 left-0 right-0 z-40 theme-panel-strong backdrop-blur-xl border-t theme-border theme-safe-bottom">
     <div class="flex items-stretch h-14">
       <router-link
         v-for="item in navItems"
@@ -55,6 +55,8 @@ const userAuthStore = useUserAuthStore()
 const appStore = useAppStore()
 
 const cartCount = computed(() => cartStore.totalItems)
+const topLevelPaths = new Set(['/', '/products', '/cart', '/auth/login', '/me'])
+const showBottomNav = computed(() => topLevelPaths.has(route.path))
 const isListMode = computed(() => appStore.config?.template_mode === 'list')
 
 const navItems = computed(() => {

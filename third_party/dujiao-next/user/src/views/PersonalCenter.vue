@@ -1,6 +1,7 @@
 <template>
   <div class="relative min-h-screen overflow-hidden theme-page pt-24 pb-16">
     <div class="container relative z-10 mx-auto px-4">
+      <CustomerServiceButton compact class="absolute right-4 top-0 z-20 lg:right-6" />
       <header class="mb-8 rounded-3xl border theme-panel-soft p-6 shadow-xl backdrop-blur-sm lg:p-8">
         <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div>
@@ -295,6 +296,7 @@ import WalletPanel from './personal/WalletPanel.vue'
 import GiftCardPanel from './personal/GiftCardPanel.vue'
 import AffiliatePanel from './personal/AffiliatePanel.vue'
 import ApiPanel from './personal/ApiPanel.vue'
+import CustomerServiceButton from '../components/CustomerServiceButton.vue'
 
 type PersonalSection = 'overview' | 'profile' | 'security' | 'orders' | 'wallet' | 'giftCard' | 'affiliate' | 'api'
 
