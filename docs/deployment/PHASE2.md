@@ -38,3 +38,18 @@ sudo nginx -t && sudo systemctl reload nginx
 3. 打开 `https://sell.cn12.vip`，确认看板、商品、订单、财务接口的真实数据或明确的不可用提示。
 4. 检查浏览器构建产物，不应出现数据库密码、支付密钥、Admin/LHC token。
 5. 验证原 Dujiao Admin 与原 Live Helper Chat Admin 仍可正常访问。
+
+## Seller Console 千牛风格消息模块
+
+卖家后台消息请求全部经过 `koshop-seller-bff`，浏览器不持有 LHC 密钥。部署时在 `/etc/koshop/seller-bff.env` 设置 `LHC_API_BASE` 与 `LHC_API_TOKEN`，并在 Live Helper Chat PHP-FPM 环境中设置同值的 `KOSHOP_CHAT_API_TOKEN`，随后重启 PHP-FPM 与 `koshop-seller-bff`。
+
+现有 `/root/deploy_koshop_phase2.sh` 无需改变部署结构；它需继续复制卖家前端构建产物、BFF `server.mjs` 和 `lhkoshopchat` 模块。首次启用消息 API 时必须补充上述环境变量。
+
+```bash
+cd /root/koshop
+bash /root/deploy_koshop_phase2.sh
+systemctl restart koshop-seller-bff
+systemctl restart php-fpm # 按服务器实际服务名调整
+```
+
+回滚时切换到上一稳定 Git 提交，重新运行部署脚本，并重启 BFF 与 PHP-FPM。该模块不修改 Dujiao 数据库、支付、订单或自动发货逻辑。

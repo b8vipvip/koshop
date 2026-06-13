@@ -1,0 +1,1 @@
+<template><div class="message" :class="item.sender"><div class="bubble">{{item.content}}</div><small>{{item.read?'已读':'未读'}}</small></div></template><script setup lang="ts">defineProps<{item:any}>()</script>
