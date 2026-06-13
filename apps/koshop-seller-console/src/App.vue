@@ -10,5 +10,39 @@ const api=import.meta.env.VITE_SELLER_API_BASE||'/api/koshop-seller',adminUrl=im
 const page=ref('dashboard'),menuOpen=ref(false),error=ref(''),health=ref<any>({}),data=ref<Record<string,any>>({}); const today=new Intl.DateTimeFormat('zh-CN',{year:'numeric',month:'long',day:'numeric',weekday:'short'}).format(new Date()); const nav=[{key:'dashboard',name:'工作台首页',icon:LayoutDashboard},{key:'products',name:'商品管理',icon:ShoppingBag},{key:'orders',name:'订单管理',icon:ClipboardList,badge:'待办'},{key:'finance',name:'交易 / 财务',icon:WalletCards},{key:'service',name:'客服接待',icon:Headphones},{key:'settings',name:'系统设置',icon:Settings}];
 const title=computed(()=>nav.find(n=>n.key===page.value)?.name||''),subtitle=computed(()=>page.value==='dashboard'?'商城经营数据、库存风险与客服接待集中处理。':page.value==='service'?'同时接待多个买家咨询，保留原客服后台兜底。':'读取操作走服务端代理，敏感写操作使用原后台兜底。'); const moduleHelp:any={products:'读取商品、状态与卡密库存摘要。',orders:'读取支付、发货与买家订单信息。',finance:'读取支付、充值与退款流水。',settings:'检查 Dujiao 与 Live Helper Chat 服务端连接状态。'}; const adminLinks:any={products:adminUrl+'/products',orders:adminUrl+'/orders',finance:adminUrl+'/payments',settings:adminUrl}; const emptyText:any={products:'暂无商品数据；请检查 Dujiao 商品 API 路径。',orders:'暂无订单数据；请检查 Dujiao 订单 API 路径。',finance:'暂无财务数据；当前 API 不可用时会明确显示。',settings:'服务状态见上方提示。'};
 const unwrap=(v:any)=>v?.data?.data??v?.data??v??{}; const rows=(key:string)=>{if(key==='settings')return [{Dujiao:health.value?.integrations?.dujiao?'已配置':'未配置','Live Helper Chat':health.value?.integrations?.lhc?'已配置':'未配置'}];const v=unwrap(data.value[key]);return Array.isArray(v)?v:Array.isArray(v?.items)?v.items:Array.isArray(v?.list)?v.list:[]}; const pick=(obj:any,keys:string[],fallback='—')=>{for(const k of keys)if(obj?.[k]!==undefined)return obj[k];return fallback}; const dash=computed(()=>unwrap(data.value.dashboard)); const metrics=computed(()=>[{name:'今日订单数',value:pick(dash.value,['today_orders','orders_total']),hint:'今日创建订单',icon:ClipboardList,tone:'blue'},{name:'今日支付金额',value:pick(dash.value,['today_paid_amount','paid_amount']),hint:'支付成功金额',icon:CreditCard,tone:'green'},{name:'待处理订单',value:pick(dash.value,['pending_orders','processing_orders']),hint:'请及时处理',icon:PackageCheck,tone:'orange'},{name:'低库存商品',value:pick(dash.value,['low_stock_products']),hint:'建议及时补充',icon:TriangleAlert,tone:'red'},{name:'当前咨询',value:rows('chats').length||'—',hint:'客服系统返回',icon:Headphones,tone:'purple'}]); const todos=computed(()=>[{name:'待处理订单',value:metrics.value[2].value,target:'orders'},{name:'低库存商品',value:metrics.value[3].value,target:'products'},{name:'待回复咨询',value:metrics.value[4].value,target:'service'}]); function select(k:string){page.value=k;menuOpen.value=false;load(k)} async function get(k:string){const r=await fetch(`${api}/${k}`);const j=await r.json();if(!r.ok||j.ok===false)throw Error(j.message||`${k} 数据不可用`);data.value[k]=j} async function load(k=page.value){error.value='';try{health.value=await (await fetch(`${api}/health`)).json();if(k==='dashboard')await Promise.allSettled(['dashboard','orders','chats'].map(get));else if(k!=='settings'&&k!=='service')await get(k);else if(k==='service')await get('chats')}catch(e:any){error.value=e.message||'服务端代理暂时不可用'}} onMounted(()=>load());
-const DataTable=defineComponent({props:{rows:{type:Array,required:true},empty:String},setup(p){return()=>p.rows.length?h('div',{class:'data-table'},[h('table',[h('thead',[h('tr',Object.keys(p.rows[0] as object).slice(0,6).map(k=>h('th',k)))]),h('tbody',p.rows.slice(0,12).map((r:any)=>h('tr',Object.keys(r).slice(0,6).map(k=>h('td',typeof r[k]==='object'?JSON.stringify(r[k]):String(r[k]??'—')))))])]):h('p',{class:'empty'},p.empty)}})
+const DataTable = defineComponent({
+  props: {
+    rows: { type: Array, required: true },
+    empty: { type: String, default: '暂无数据' },
+  },
+  setup(props) {
+    return () => {
+      const tableRows = props.rows as Array<Record<string, unknown>>
+
+      if (!tableRows.length) {
+        return h('p', { class: 'empty' }, props.empty)
+      }
+
+      const headers = Object.keys(tableRows[0] || {}).slice(0, 6)
+
+      return h('div', { class: 'data-table' }, [
+        h('table', [
+          h('thead', [
+            h('tr', headers.map((key) => h('th', { key }, key))),
+          ]),
+          h('tbody', tableRows.slice(0, 12).map((row, index) =>
+            h('tr', { key: index }, headers.map((key) => {
+              const value = row[key]
+              const text = typeof value === 'object' && value !== null
+                ? JSON.stringify(value)
+                : String(value ?? '—')
+              return h('td', { key }, text)
+            }))
+          )),
+        ]),
+      ])
+    }
+  },
+})
+
 </script>
