@@ -81,6 +81,55 @@ function koshopMessageSender($m) {
     return 'buyer';
 }
 
+/*
+ * 关键修复：
+ * Live Helper Chat 访客页面出现
+ * “You are number X in the queue. Please wait...”
+ * 是因为 chat 仍是 Pending 状态。
+ *
+ * 卖家后台打开/读取/发送消息时，自动把会话切换为 Active。
+ */
+function koshopAutoAcceptChat($c, $sellerName = 'admin') {
+    try {
+        $changed = false;
+
+        if ((int)koshopSafeProp($c, 'status', 0) === 0) {
+            $c->status = 1; // 0 Pending, 1 Active, 2 Closed
+            $changed = true;
+        }
+
+        if ((int)koshopSafeProp($c, 'user_id', 0) === 0) {
+            $c->user_id = 1;
+            $changed = true;
+        }
+
+        try {
+            $c->user = $sellerName;
+            $changed = true;
+        } catch (Throwable $e) {}
+
+        try {
+            if ((int)koshopSafeProp($c, 'accept_time', 0) === 0) {
+                $c->accept_time = time();
+                $changed = true;
+            }
+        } catch (Throwable $e) {}
+
+        try {
+            $c->support_informed = 1;
+            $changed = true;
+        } catch (Throwable $e) {}
+
+        if ($changed) {
+            try {
+                $c->updateThis();
+            } catch (Throwable $e) {
+                try { $c->saveThis(); } catch (Throwable $e2) {}
+            }
+        }
+    } catch (Throwable $e) {}
+}
+
 function chatItem($c) {
     $last = '';
     try {
@@ -96,6 +145,7 @@ function chatItem($c) {
     } catch (Throwable $e) {}
 
     $avatar = koshopBuyerAvatar($c);
+    $status = (int)koshopSafeProp($c, 'status', 0);
 
     return array(
         'id' => (int)$c->id,
@@ -106,7 +156,7 @@ function chatItem($c) {
         'lastMessageAt' => date('H:i', (int)$c->time),
         'unread' => (int)$c->user_status === 0,
         'unreadCount' => (int)$c->user_status === 0 ? 1 : 0,
-        'status' => (int)$c->status === 2 ? 'closed' : 'active',
+        'status' => $status === 2 ? 'closed' : ($status === 0 ? 'pending' : 'active'),
         'orderStatus' => orderStatus($c->id),
         'isStarred' => false,
         'isPinned' => false
@@ -160,7 +210,7 @@ try {
                 'buyerName' => koshopBuyerName($c),
                 'buyerAvatar' => koshopBuyerAvatar($c),
                 'avatar' => koshopBuyerAvatar($c),
-                'status' => 'active',
+                'status' => (int)koshopSafeProp($c, 'status', 0) === 0 ? 'pending' : 'active',
                 'orderStatus' => orderStatus($id),
                 'buyerId' => koshopSafeProp($c, 'hash', ''),
                 'source' => 'Live Helper Chat'
@@ -179,26 +229,20 @@ try {
         $sellerName = trim((string)($b['sellerName'] ?? '')) ?: 'admin';
         $sellerAvatar = trim((string)($b['sellerAvatar'] ?? ''));
 
+        // 卖家第一次回复时自动接入排队访客
+        koshopAutoAcceptChat($c, $sellerName);
+
         $m = new erLhcoreClassModelmsg();
         $m->chat_id = $id;
-
-        /*
-         * 兼容 Live Helper Chat 不同版本：
-         * BFF Token 请求没有 LHC 后台登录态，所以不依赖 erLhcoreClassUser::instance()。
-         * 固定 user_id=1 + name_support，保证刷新后仍识别为 seller。
-         * 不写 meta_msg，避免部分 LHC 版本模型无此字段导致 500。
-         */
         $m->user_id = 1;
         $m->name_support = $sellerName;
         $m->time = time();
         $m->msg = $content;
         $m->saveThis();
 
-        /*
-         * 尽量刷新 chat 最近消息时间，不支持也不影响发送成功。
-         */
         try {
             $c->last_msg_id = $m->id;
+            $c->last_op_msg_time = time();
             $c->time = time();
             $c->updateThis();
         } catch (Throwable $e) {}
@@ -222,6 +266,12 @@ try {
     }
 
     if ($action === 'messages') {
+        /*
+         * 卖家打开会话详情时也自动接入。
+         * 这样访客页面会从排队状态进入聊天状态。
+         */
+        koshopAutoAcceptChat($c, 'admin');
+
         $items = array();
 
         foreach (erLhcoreClassModelmsg::getList(array(
@@ -251,10 +301,8 @@ try {
     }
 
     if ($action === 'read') {
-        /*
-         * 兼容处理：markAsRead 在不同版本可能签名不同。
-         * 标记失败也不应该阻断聊天页面，所以这里兜底返回 ok。
-         */
+        koshopAutoAcceptChat($c, 'admin');
+
         try {
             if (method_exists('erLhcoreClassChat', 'markAsRead')) {
                 erLhcoreClassChat::markAsRead($c);
