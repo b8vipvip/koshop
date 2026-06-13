@@ -1,19 +1,72 @@
 <?php
+
 $tpl = erLhcoreClassTemplate::getInstance('lhkoshopchat/dashboard.tpl.php');
-$items = erLhcoreClassModelChat::getList(array(
-    'sort' => 'last_msg_id DESC',
-    'limit' => 80,
-    'filterin' => array('status' => array(erLhcoreClassModelChat::STATUS_PENDING_CHAT, erLhcoreClassModelChat::STATUS_ACTIVE_CHAT, erLhcoreClassModelChat::STATUS_CLOSED_CHAT))
-));
+
 $visible = array();
-foreach ($items as $item) {
-    if (erLhcoreClassChat::hasAccessToRead($item)) $visible[] = $item;
-}
 $selected = false;
-$cid = isset($Params['user_parameters_unordered']['cid']) ? (int)$Params['user_parameters_unordered']['cid'] : 0;
-foreach ($visible as $item) if ($item->id === $cid) $selected = $item;
-if ($selected === false && count($visible)) $selected = $visible[0];
+$errors = array();
+
+try {
+    $statuses = array();
+
+    foreach (array('STATUS_PENDING_CHAT', 'STATUS_ACTIVE_CHAT', 'STATUS_CLOSED_CHAT') as $const) {
+        $full = 'erLhcoreClassModelChat::' . $const;
+        if (defined($full)) {
+            $statuses[] = constant($full);
+        }
+    }
+
+    $params = array(
+        'sort' => 'id DESC',
+        'limit' => 80,
+    );
+
+    if (!empty($statuses)) {
+        $params['filterin'] = array('status' => $statuses);
+    }
+
+    $items = erLhcoreClassModelChat::getList($params);
+
+    foreach ($items as $item) {
+        $allow = true;
+
+        if (class_exists('erLhcoreClassChat') && method_exists('erLhcoreClassChat', 'hasAccessToRead')) {
+            try {
+                $allow = erLhcoreClassChat::hasAccessToRead($item);
+            } catch (Throwable $e) {
+                // 某些 LHC 版本 hasAccessToRead 签名不一致，先不中断工作台。
+                $allow = true;
+            }
+        }
+
+        if ($allow) {
+            $visible[] = $item;
+        }
+    }
+
+    $cid = isset($Params['user_parameters_unordered']['cid'])
+        ? (int)$Params['user_parameters_unordered']['cid']
+        : 0;
+
+    foreach ($visible as $item) {
+        if ((int)$item->id === $cid) {
+            $selected = $item;
+            break;
+        }
+    }
+
+    if ($selected === false && count($visible) > 0) {
+        $selected = $visible[0];
+    }
+} catch (Throwable $e) {
+    $errors[] = $e->getMessage();
+}
+
 $tpl->set('chats', $visible);
 $tpl->set('selected_chat', $selected);
+$tpl->set('koshop_errors', $errors);
+
 $Result['content'] = $tpl->fetch();
-$Result['path'] = array(array('title' => 'Koshop 客服工作台'));
+$Result['path'] = array(
+    array('title' => 'Koshop 客服工作台')
+);
