@@ -2,7 +2,7 @@
   <button
     v-if="showBackButton"
     type="button"
-    class="lg:hidden fixed left-3 top-[4.5rem] z-30 inline-flex h-10 w-10 items-center justify-center rounded-full border theme-panel-strong theme-border shadow-lg backdrop-blur-xl"
+    class="fixed left-3 top-[max(1rem,env(safe-area-inset-top))] z-30 inline-flex h-10 w-10 items-center justify-center rounded-full border theme-panel-strong theme-border shadow-lg backdrop-blur-xl"
     aria-label="返回上一页"
     @click="goBack"
   >
@@ -18,7 +18,7 @@ import { useRoute, useRouter } from 'vue-router'
 
 const route = useRoute()
 const router = useRouter()
-const topLevelPaths = new Set(['/', '/products', '/cart', '/auth/login', '/me'])
+const topLevelPaths = new Set(['/', '/products', '/cart', '/auth/login', '/me', '/blog', '/notice', '/about'])
 const showBackButton = computed(() => !topLevelPaths.has(route.path))
 
 const goBack = () => {

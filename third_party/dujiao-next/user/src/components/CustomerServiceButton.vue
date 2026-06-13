@@ -8,7 +8,7 @@
     @click="openCustomerService"
   >
     <svg class="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" aria-hidden="true"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18 10a6 6 0 10-12 0v4a2 2 0 002 2h1v-5H6m12 0h-3v5h1a2 2 0 002-2v-4m-1 8c-.8 1.2-1.8 2-3 2" /></svg>
-    <span v-if="!compact">联系客服</span>
+    <span v-if="!compact">{{ label }}</span>
   </button>
 </template>
 
@@ -16,7 +16,7 @@
 import { computed } from 'vue'
 import { useUserAuthStore } from '../stores/userAuth'
 
-withDefaults(defineProps<{ compact?: boolean }>(), { compact: false })
+withDefaults(defineProps<{ compact?: boolean; label?: string }>(), { compact: false, label: '客服' })
 
 const auth = useUserAuthStore()
 const baseUrl = import.meta.env.VITE_CUSTOMER_SERVICE_URL || 'https://kefu.cn12.vip/index.php/chn/chat/start'
@@ -50,6 +50,6 @@ const openCustomerService = () => {
     widget.LHCChatOptions.open()
     return
   }
-  window.open(customerServiceUrl.value, '_blank', 'noopener,noreferrer')
+  window.dispatchEvent(new CustomEvent('koshop:open-chat', { detail: customerServiceUrl.value }))
 }
 </script>
