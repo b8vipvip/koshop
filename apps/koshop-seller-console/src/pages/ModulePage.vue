@@ -1,0 +1,1 @@
+<template><div class="page"><TopBar :title="title"/><section class="card module"><h2>{{title}}</h2><p>{{help}}</p><p class="empty">数据继续通过现有 BFF 接口读取，本轮未改动核心业务逻辑。</p></section></div></template><script setup lang="ts">import TopBar from'../components/TopBar.vue';defineProps<{title:string,help:string}>()</script>
