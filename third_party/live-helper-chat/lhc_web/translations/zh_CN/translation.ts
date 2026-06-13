@@ -9159,7 +9159,7 @@
     </message>
     <message>
       <source>Submit</source>
-      <translation type="unfinished"/>
+      <translation>发送</translation>
     </message>
     <message>
       <source>This chat is closed now. You can close window.</source>
@@ -9167,15 +9167,15 @@
     </message>
     <message>
       <source>Your message...</source>
-      <translation>您的讯息...</translation>
+      <translation>输入消息</translation>
     </message>
     <message>
       <source>Send files or enter additional information</source>
-      <translation type="unfinished"/>
+      <translation>上传文件或补充信息</translation>
     </message>
     <message>
       <source>Remove file</source>
-      <translation type="unfinished"/>
+      <translation>移除文件</translation>
     </message>
     <message>
       <source>Thank you for your feedback...</source>
@@ -9191,11 +9191,11 @@
     </message>
     <message>
       <source>There was an issue sending the message. Try again.</source>
-      <translation type="unfinished"/>
+      <translation>消息发送失败，请稍后再试。</translation>
     </message>
     <message>
       <source>No internet connection.</source>
-      <translation type="unfinished"/>
+      <translation>网络连接已断开。</translation>
     </message>
     <message>
       <source>Visitor is typing</source>

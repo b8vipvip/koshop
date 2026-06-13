@@ -1,3 +1,20 @@
-/* Koshop buyer chat: loaded by the customtheme before defaulttheme. */
-:root{--koshop-accent:#ef623e;--koshop-soft:#fff4ee;--koshop-bg:#f5f6f8}
-body{background:var(--koshop-bg);color:#262b33}.btn-primary,.btn-success{background:var(--koshop-accent)!important;border-color:var(--koshop-accent)!important}.header-chat{background:#fff!important;border-bottom:1px solid #ebecef!important}.header-chat h1:before{content:'店铺客服';font-size:16px}.header-chat h1{font-size:0}.msgBlock{padding:18px!important;background:var(--koshop-bg)!important}.message-row.response .msg-body,.message-row.operator .msg-body{background:#fff!important;border-radius:4px 16px 16px 16px!important;box-shadow:0 1px 3px #0000000d}.message-row.message-admin .msg-body,.message-row.user .msg-body{background:#ffe7dc!important;border-radius:16px 4px 16px 16px!important}.message-row.system .msg-body{background:#e9ebee!important;color:#7d848e!important;border-radius:12px!important}.footer-chat,.chat-footer{background:#fff!important;border-top:1px solid #e8eaed!important;padding:10px!important}#CSChatMessage{border-radius:12px!important;border-color:#dfe2e6!important;min-height:44px!important}.offline-form{background:#fff;border-radius:14px;padding:18px;box-shadow:0 6px 30px #0000000d}@media(max-width:600px){body{background:#fff}.msgBlock{padding:13px!important}.container-fluid{padding-left:0!important;padding-right:0!important}}
+/* Koshop buyer chat theme. Keep selectors additive so LHC message/upload mechanics remain intact. */
+:root { --koshop-accent:#ef623e; --koshop-accent-soft:#fff0e9; --koshop-bg:#f4f5f7; --koshop-text:#20242b; }
+body { background:var(--koshop-bg); color:var(--koshop-text); }
+.btn-primary,.btn-success { background:var(--koshop-accent)!important; border-color:var(--koshop-accent)!important; border-radius:12px!important; }
+.header-chat { min-height:58px; background:#fff!important; border-bottom:1px solid #e8eaee!important; box-shadow:0 2px 12px #1118270a; }
+.header-chat h1:before { content:'店铺客服'; font-size:16px; font-weight:700; }
+.header-chat h1 { font-size:0; }
+.header-chat:after { content:'在线'; display:inline-flex; margin-left:8px; color:#16a34a; font-size:12px; }
+.msgBlock { padding:18px!important; background:var(--koshop-bg)!important; }
+div.message-row { margin-bottom:10px; }
+div.message-row .msg-body { max-width:min(78%,560px); overflow-wrap:anywhere; white-space:pre-wrap; line-height:1.55; padding:10px 13px!important; }
+div.message-row.response .msg-body { background:#fff!important; border-radius:5px 16px 16px!important; box-shadow:0 1px 4px #11182712; }
+div.message-row.message-admin .msg-body { background:var(--koshop-accent-soft)!important; border-radius:16px 5px 16px 16px!important; color:#44251d!important; }
+div.message-row.system-response { text-align:center; opacity:.75; font-size:12px; }
+div.message-row.system-response .msg-body { display:inline-block; background:#e5e7eb!important; border-radius:999px!important; color:#667085!important; }
+.message-send-area { background:#fff!important; border-top:1px solid #e5e7eb!important; padding:10px!important; }
+textarea[name=ChatMessage],#CSChatMessage,.form-control { border-radius:12px!important; border-color:#dfe2e7!important; min-height:44px; }
+textarea[name=ChatMessage]:focus,#CSChatMessage:focus { border-color:var(--koshop-accent)!important; box-shadow:0 0 0 3px #ef623e20!important; }
+.offline-form,form#form-start-chat { background:#fff; border-radius:18px; padding:18px; box-shadow:0 8px 32px #1118270d; }
+@media(max-width:600px) { .msgBlock{padding:12px!important} div.message-row .msg-body{max-width:84%} .container-fluid{padding-left:0!important;padding-right:0!important} }

@@ -53,3 +53,11 @@ systemctl restart php-fpm # 按服务器实际服务名调整
 ```
 
 回滚时切换到上一稳定 Git 提交，重新运行部署脚本，并重启 BFF 与 PHP-FPM。该模块不修改 Dujiao 数据库、支付、订单或自动发货逻辑。
+
+## 买家前台与客服增量部署
+
+仓库内 `deploy/deploy_koshop.sh` 会按 Git 差异检测 Dujiao-Next 买家前台和 Live Helper Chat。买家前台仅在缺少 `node_modules` 时执行 `npm ci`，随后构建并只同步 `dist` 静态产物（无需 rebuild 镜像或重启容器）；LHC 仅同步源码并清理模板缓存。
+
+```bash
+REPO=/opt/koshop BASE_REF=HEAD~1 TARGET_REF=HEAD bash /opt/koshop/deploy/deploy_koshop.sh
+```
