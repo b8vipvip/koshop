@@ -1,6 +1,6 @@
 <template>
   <div class="home-page relative min-h-screen theme-page">
-    <CustomerServiceButton compact class="fixed right-4 top-20 z-30 lg:absolute lg:right-8 lg:top-24" />
+    <CustomerServiceButton class="fixed right-4 top-20 z-30 lg:absolute lg:right-8 lg:top-24" />
 
     <!-- ==================== LIST MODE ==================== -->
     <template v-if="templateMode === 'list'">

@@ -8,27 +8,9 @@
     leave-to-class="translate-y-full opacity-0">
     <div v-if="visible"
       class="lg:hidden fixed bottom-0 left-0 right-0 z-40 theme-panel-strong backdrop-blur-xl border-t theme-border shadow-2xl theme-safe-bottom">
-      <div class="flex items-center gap-2 px-3 py-3">
-        <!-- Price -->
-        <div class="flex-1 min-w-0">
-          <span v-if="showMemberPrice" class="theme-price-sm text-amber-600 dark:text-amber-300 truncate block">
-            {{ memberPriceDisplay }}
-          </span>
-          <span v-else-if="showSkuPromotionPrice" class="theme-price-sm text-rose-600 dark:text-rose-300 truncate block">
-            {{ skuPromotionPriceDisplay }}
-          </span>
-          <span v-else-if="showSkuPrice" class="theme-price-sm theme-text-accent truncate block">
-            {{ skuPriceDisplay }}
-          </span>
-          <span v-else-if="showProductPromotionPrice" class="theme-price-sm text-rose-600 dark:text-rose-300 truncate block">
-            {{ productPromotionPriceDisplay }}
-          </span>
-          <span v-else class="theme-price-sm theme-text-accent truncate block">
-            {{ productPriceDisplay }}
-          </span>
-        </div>
+      <div class="grid grid-cols-[64px_minmax(0,1fr)_minmax(0,1fr)] gap-2 px-3 py-3">
         <!-- Actions -->
-        <CustomerServiceButton compact class="h-11 w-11" />
+        <CustomerServiceButton class="h-11 px-2 text-xs" />
         <button v-if="requiresLogin" @click="$emit('goLogin')"
           class="px-2 py-3 theme-btn-primary font-bold rounded-xl text-xs min-h-[44px]">
           {{ t('productDetail.loginToBuy') }}
