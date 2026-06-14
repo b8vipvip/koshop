@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
     <div v-if="open" class="fixed inset-0 z-[100] flex items-end justify-center bg-black/30 lg:items-center lg:p-6">
-      <section class="flex h-[100dvh] w-full flex-col overflow-hidden bg-[#f3f5f7] text-[15px] text-slate-900 lg:h-[90vh] lg:max-w-[460px] lg:rounded-3xl">
+      <section :style="{ height: chatViewportHeight }" class="flex w-full flex-col overflow-hidden bg-[#f3f5f7] text-[15px] text-slate-900 lg:max-h-[90vh] lg:max-w-[460px] lg:rounded-3xl">
         <header class="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3">
           <button class="flex h-10 w-10 items-center justify-center text-4xl leading-none" @click="close">‹</button>
           <div class="min-w-0 flex-1">
@@ -69,7 +69,7 @@
                 :key="e"
                 type="button"
                 class="flex h-10 items-center justify-center rounded-lg bg-slate-100 text-xl"
-                @click="draft+=e"
+                @click="appendEmoji(e)"
               >
                 {{e}}
               </button>
@@ -101,9 +101,11 @@
             </button>
 
             <input
-              v-model="draft"
+              :value="draft"
               @focus="closePanels"
-              @input="more=false"
+              @input="onDraftInput"
+              @compositionstart="isComposing = true"
+              @compositionend="onCompositionEnd"
               class="h-11 min-w-0 rounded-xl bg-gray-100 px-3 text-[15px] outline-none"
               placeholder="输入消息"
             >
@@ -117,7 +119,8 @@
             </button>
 
             <button
-              v-if="draft.trim()"
+              v-if="hasDraft"
+              type="submit"
               class="h-11 rounded-xl bg-orange-500 px-3 text-[15px] font-bold text-white"
             >
               发送
@@ -168,6 +171,8 @@ const open = ref(false)
 const more = ref(false)
 const emoji = ref(false)
 const draft = ref('')
+const isComposing = ref(false)
+const chatViewportHeight = ref('100dvh')
 const messages = ref<Message[]>([])
 const status = ref('正在连接店铺客服…')
 const list = ref<HTMLElement | null>(null)
@@ -190,12 +195,47 @@ const image = ref<HTMLInputElement>()
 const video = ref<HTMLInputElement>()
 const session = ref<{ id: number; hash: string } | null>(null)
 const timer = ref<number>()
+let previousBodyOverflow = ''
 
 const buyerName = computed(() => auth.isAuthenticated ? (auth.user?.nickname || auth.user?.email || `买家 ${auth.user?.id}`) : '访客')
 const buyerInitial = computed(() => buyerName.value.slice(0, 1))
+const hasDraft = computed(() => draft.value.trim().length > 0)
+
+const updateChatViewportHeight = () => {
+  chatViewportHeight.value = `${window.visualViewport?.height || window.innerHeight}px`
+}
+
+const addViewportListeners = () => {
+  updateChatViewportHeight()
+  window.addEventListener('resize', updateChatViewportHeight)
+  window.addEventListener('orientationchange', updateChatViewportHeight)
+  window.visualViewport?.addEventListener('resize', updateChatViewportHeight)
+}
+
+const removeViewportListeners = () => {
+  window.removeEventListener('resize', updateChatViewportHeight)
+  window.removeEventListener('orientationchange', updateChatViewportHeight)
+  window.visualViewport?.removeEventListener('resize', updateChatViewportHeight)
+}
 
 const closePanels = () => {
   emoji.value = false
+  more.value = false
+}
+
+const onDraftInput = (event: Event) => {
+  draft.value = (event.target as HTMLInputElement).value
+  if (hasDraft.value) more.value = false
+}
+
+const onCompositionEnd = (event: CompositionEvent) => {
+  isComposing.value = false
+  draft.value = (event.target as HTMLInputElement).value
+  if (hasDraft.value) more.value = false
+}
+
+const appendEmoji = (value: string) => {
+  draft.value += value
   more.value = false
 }
 
@@ -208,22 +248,25 @@ const request = async (action: string, options: RequestInit = {}) => {
     url.searchParams.set('hash', s.hash)
   }
 
-  const r = await fetch(url, {
-    ...options,
-    headers: options.body instanceof FormData
-      ? (options.headers || {})
-      : { 'Content-Type': 'application/json', ...(options.headers || {}) }
-  })
+  try {
+    const r = await fetch(url, {
+      ...options,
+      headers: options.body instanceof FormData
+        ? (options.headers || {})
+        : { 'Content-Type': 'application/json', ...(options.headers || {}) }
+    })
+    const data = await r.json().catch(() => ({ message: '客服接口返回异常' }))
 
-  const data = await r.json().catch(() => ({ message: '客服连接失败' }))
-
-  if (!r.ok) {
-    const e: any = new Error(data.message || '客服连接失败')
-    e.status = r.status
-    throw e
+    if (!r.ok || data.ok === false) {
+      const error: any = new Error(data.message || '客服连接失败')
+      error.status = r.status
+      throw error
+    }
+    return data
+  } catch (error) {
+    console.error('[KoshopChat]', action, error)
+    throw error
   }
-
-  return data
 }
 
 const tool = (x: string) => {
@@ -299,7 +342,19 @@ const start = async () => {
     if (timer.value) clearInterval(timer.value)
 
     const saved = localStorage.getItem('koshop_public_chat')
-    if (saved && !session.value) session.value = JSON.parse(saved)
+    if (saved && !session.value) {
+      try {
+        const parsed = JSON.parse(saved)
+        if (!parsed || !Number.isFinite(Number(parsed.id)) || Number(parsed.id) <= 0 || typeof parsed.hash !== 'string' || !parsed.hash) {
+          throw new Error('会话结构无效')
+        }
+        session.value = { id: Number(parsed.id), hash: parsed.hash }
+      } catch (error) {
+        console.error('[KoshopChat]', 'restore-session', error)
+        localStorage.removeItem('koshop_public_chat')
+        session.value = null
+      }
+    }
 
     if (!session.value) {
       const data = await request('start', {
@@ -311,6 +366,7 @@ const start = async () => {
         })
       })
 
+      if (!data.session?.id || !data.session?.hash) throw new Error('客服接口未返回有效会话')
       session.value = data.session
       localStorage.setItem('koshop_public_chat', JSON.stringify(data.session))
     }
@@ -320,13 +376,17 @@ const start = async () => {
     if (open.value) {
       timer.value = window.setInterval(() => void load(), 2500)
     }
-  } catch {
-    status.value = '暂时无法连接客服，请稍后重试'
+  } catch (error) {
+    console.error('[KoshopChat]', 'start', error)
+    status.value = '客服连接失败，请稍后重试'
   }
 }
 
 const show = () => {
   open.value = true
+  previousBodyOverflow = document.body.style.overflow
+  document.body.style.overflow = 'hidden'
+  addViewportListeners()
   void start()
 }
 
@@ -335,13 +395,18 @@ const close = () => {
   more.value = false
   emoji.value = false
   if (timer.value) clearInterval(timer.value)
+  removeViewportListeners()
+  document.body.style.overflow = previousBodyOverflow
 }
 
-const send = async () => {
+const send = async (canRebuildSession: boolean | Event = true) => {
   const content = draft.value.trim()
-  if (!content || !session.value) return
+  if (!content || isComposing.value) return
+  console.debug('[KoshopChat] send', content)
 
   try {
+    if (!session.value) await start()
+    if (!session.value) throw new Error('客服连接失败，请稍后重试')
     const data = await request('send', {
       method: 'POST',
       body: JSON.stringify({ content })
@@ -356,7 +421,14 @@ const send = async () => {
     status.value = '店铺客服在线，您可以直接留言'
     await scroll()
   } catch (e: any) {
-    status.value = e.message || '消息发送失败，请重试'
+    if (canRebuildSession !== false && (e.status === 403 || String(e.message).includes('会话无效'))) {
+      localStorage.removeItem('koshop_public_chat')
+      session.value = null
+      await start()
+      if (session.value) return send(false)
+    }
+    console.error('[KoshopChat]', 'send', e)
+    status.value = '消息发送失败，请稍后重试'
   }
 }
 
