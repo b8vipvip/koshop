@@ -1,0 +1,9 @@
+export const isImage=(file:File)=>/^image\/(jpeg|png|gif|webp)$/.test(file.type)
+export const isVideo=(file:File)=>/^video\/(mp4|webm|quicktime)$/.test(file.type)
+const loaded=(el:HTMLImageElement|HTMLVideoElement,event:string)=>new Promise<void>((resolve,reject)=>{el.addEventListener(event,()=>resolve(),{once:true});el.addEventListener('error',()=>reject(new Error('媒体读取失败')),{once:true})})
+export async function compressImage(file:File):Promise<File>{
+ if(!isImage(file)||file.type==='image/gif'||file.size<500*1024)return file
+ try{const url=URL.createObjectURL(file),img=new Image();img.src=url;await loaded(img,'load');const scale=Math.min(1,1600/Math.max(img.naturalWidth,img.naturalHeight)),canvas=document.createElement('canvas');canvas.width=Math.round(img.naturalWidth*scale);canvas.height=Math.round(img.naturalHeight*scale);canvas.getContext('2d')!.drawImage(img,0,0,canvas.width,canvas.height);const type=file.type==='image/png'?'image/png':'image/jpeg';const blob=await new Promise<Blob|null>(r=>canvas.toBlob(r,type,.82));URL.revokeObjectURL(url);return blob&&blob.size<file.size?new File([blob],file.name,{type,lastModified:file.lastModified}):file}catch{return file}
+}
+export async function getVideoThumbnail(file:File):Promise<Blob|null>{
+ if(!isVideo(file))return null;const url=URL.createObjectURL(file),video=document.createElement('video');video.muted=true;video.preload='metadata';video.src=url;try{await loaded(video,'loadedmetadata');video.currentTime=Math.min(.5,Math.max(0,video.duration/2));await loaded(video,'seeked');const scale=Math.min(1,640/video.videoWidth),c=document.createElement('canvas');c.width=Math.round(video.videoWidth*scale);c.height=Math.round(video.videoHeight*scale);c.getContext('2d')!.drawImage(video,0,0,c.width,c.height);return await new Promise(r=>c.toBlob(r,'image/jpeg',.8))}catch{return null}finally{URL.revokeObjectURL(url)}}
