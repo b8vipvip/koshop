@@ -591,7 +591,7 @@ const formatDate = (raw?: string) => {
   if (!raw) return ''
   const date = new Date(raw)
   if (Number.isNaN(date.getTime())) return raw
-  return date.toLocaleString()
+  return date.toLocaleString('zh-CN', { timeZone: 'Asia/Shanghai', hour12: false })
 }
 
 const getLocalizedText = (jsonData: any) => {

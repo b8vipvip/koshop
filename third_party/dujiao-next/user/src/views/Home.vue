@@ -491,7 +491,7 @@ usePageSeo({
 // ==================== Card Mode ====================
 const formatDate = (dateString: string) => {
   if (!dateString) return ''
-  return new Date(dateString).toLocaleDateString()
+  return new Date(dateString).toLocaleDateString('zh-CN', { timeZone: 'Asia/Shanghai' })
 }
 
 const goToProduct = (slug: string) => {
