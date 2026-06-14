@@ -85,6 +85,17 @@ function firstImage(x){
   return pick(x,'cover','image','main_image','thumbnail')||''
 }
 
+function versionedUploadUrl(url, version){
+  if(!url)return ''
+  const value=String(url)
+  if(!value.startsWith('/uploads/'))return value
+  if(value.includes('?'))return value
+  const raw=String(version||Date.now())
+  const v=encodeURIComponent(raw.replace(/[^0-9A-Za-z_-]/g,'').slice(0,32)||String(Date.now()))
+  return `${value}?v=${v}`
+}
+
+
 export function normalizeProduct(x={}){
   const active=pick(x,'is_active','active')
   const status=active===undefined
@@ -100,7 +111,7 @@ export function normalizeProduct(x={}){
     stock:productStock(x),
     status,
     statusText:status==='on_sale'?'上架':'下架',
-    cover:firstImage(x),
+    cover:versionedUploadUrl(firstImage(x),pick(x,'updated_at','updatedAt','id')),
     categoryName:localize(pick(x,'category_name','categoryName')||x.category?.name),
     category:x.category||null,
     skus:x.skus||x.variants||[],
