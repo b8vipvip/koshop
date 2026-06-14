@@ -1,6 +1,11 @@
 <template>
   <div class="home-page relative min-h-screen theme-page">
-    <CustomerServiceButton class="fixed right-4 top-20 z-30 lg:absolute lg:right-8 lg:top-24" />
+    <div class="fixed right-3 top-3 z-30 flex items-center gap-2 lg:absolute lg:right-8">
+      <CustomerServiceButton class="min-h-9 px-3 py-1.5" />
+      <router-link v-if="!auth.isAuthenticated" to="/auth/login" class="rounded-full border theme-btn-secondary px-3 py-2 text-xs font-bold">登录</router-link>
+      <router-link v-if="!auth.isAuthenticated" to="/auth/register" class="rounded-full theme-btn-primary px-3 py-2 text-xs font-bold">注册</router-link>
+      <router-link v-else to="/me" class="max-w-32 truncate rounded-full border theme-btn-secondary px-3 py-2 text-xs font-bold">{{ auth.user?.nickname || auth.user?.email || '我的' }}</router-link>
+    </div>
 
     <!-- ==================== LIST MODE ==================== -->
     <template v-if="templateMode === 'list'">
@@ -382,6 +387,7 @@ import { useProductList } from '../composables/useProductList'
 import { useProductListGroups } from '../composables/useProductListGroups'
 import { usePageSeo } from '../composables/usePageSeo'
 import { useAppStore } from '../stores/app'
+import { useUserAuthStore } from '../stores/userAuth'
 import ProductCard from '../components/ProductCard.vue'
 import ProductListItem from '../components/ProductListItem.vue'
 import ProductQuickBuy from '../components/ProductQuickBuy.vue'
@@ -395,6 +401,7 @@ const router = useRouter()
 const { t } = useI18n()
 const { getLocalizedText } = useLocalized()
 const appStore = useAppStore()
+const auth = useUserAuthStore()
 
 const templateMode = computed(() => appStore.config?.template_mode || 'card')
 const navBuiltin = computed(() => (appStore.config?.nav_config as { builtin?: Record<string, boolean> } | undefined)?.builtin)

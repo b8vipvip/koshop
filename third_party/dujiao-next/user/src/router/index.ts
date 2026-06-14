@@ -159,7 +159,6 @@ const router = createRouter({
             name: 'personal-center',
             component: () => import('../views/PersonalCenter.vue'),
             props: { section: 'overview' },
-            meta: { requiresUserAuth: true }
         },
         {
             path: '/me/profile',
