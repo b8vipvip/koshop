@@ -52,6 +52,7 @@
                 <a v-else-if="message.type==='file'" :href="message.url" target="_blank">📎 {{message.fileName||message.content}}</a>
                 <template v-else>{{ message.content }}</template>
               </div>
+              <p v-if="message.sender === 'buyer'" class="mt-1 text-right text-xs text-gray-400">{{ message.readText || (message.read ? '已读' : '未读') }}</p>
             </div>
           </div>
         </main>
@@ -155,6 +156,8 @@ type Message = {
   url?: string
   thumbnailUrl?: string
   fileName?: string
+  read?: boolean
+  readText?: string
 }
 
 const apiBase = import.meta.env.VITE_PUBLIC_CHAT_API_URL || 'https://kefu.cn12.vip/index.php/chn/koshopchat/public'
