@@ -1,6 +1,6 @@
 <template>
   <div id="app" class="min-h-screen theme-page flex flex-col">
-    <Navbar v-if="!hideTopNav" />
+    <!-- The buyer storefront intentionally has no global top navigation. -->
     <main class="flex-1 pb-14 lg:pb-0">
       <ErrorBoundary>
         <RouterView v-slot="{ Component }">
@@ -25,7 +25,6 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useAppStore } from './stores/app'
-import Navbar from './components/Navbar.vue'
 import Footer from './components/Footer.vue'
 import Loading from './components/Loading.vue'
 import Toast from './components/Toast.vue'

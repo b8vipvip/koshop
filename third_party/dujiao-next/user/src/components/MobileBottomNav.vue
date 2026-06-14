@@ -64,7 +64,7 @@ const navItems = computed(() => {
     { path: '/', icon: 'home', label: 'bottomNav.home' },
     ...(!isListMode.value ? [{ path: '/products', icon: 'products', label: 'bottomNav.products' }] : []),
     { path: '/cart', icon: 'cart', label: 'bottomNav.cart' },
-    { path: userAuthStore.isAuthenticated ? '/me' : '/auth/login', icon: 'me', label: 'bottomNav.me' },
+    { path: '/me', icon: 'me', label: 'bottomNav.me' },
   ]
   return items
 })

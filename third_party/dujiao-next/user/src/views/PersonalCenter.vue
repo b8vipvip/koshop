@@ -1,6 +1,15 @@
 <template>
   <div class="relative min-h-screen overflow-hidden theme-page pt-24 pb-16">
-    <div class="container relative z-10 mx-auto px-4">
+    <div v-if="!auth.isAuthenticated" class="container relative z-10 mx-auto max-w-xl space-y-5 px-4">
+      <section class="rounded-3xl border theme-panel-soft p-6 shadow-xl">
+        <div class="flex items-center gap-4"><div class="flex h-16 w-16 items-center justify-center rounded-full theme-selected-surface text-2xl">访</div><div><h1 class="text-xl font-black theme-text-primary">欢迎来到我的</h1><p class="mt-1 text-sm theme-text-muted">登录后查看订单、钱包和账户信息</p></div></div>
+        <div class="mt-5 grid grid-cols-2 gap-3"><router-link to="/auth/login" class="rounded-xl theme-btn-primary px-4 py-3 text-center text-sm font-bold">登录</router-link><router-link to="/auth/register" class="rounded-xl border theme-btn-secondary px-4 py-3 text-center text-sm font-bold">注册</router-link></div>
+      </section>
+      <section class="rounded-2xl border theme-panel-soft p-3 shadow-sm"><router-link v-for="item in publicLinks" :key="item.to" :to="item.to" class="flex items-center justify-between rounded-xl px-3 py-3 text-sm theme-text-primary hover:theme-surface-soft"><span>{{ item.icon }}　{{ item.label }}</span><span>›</span></router-link></section>
+      <section class="rounded-2xl border theme-panel-soft p-4 shadow-sm"><h2 class="mb-3 text-sm font-bold theme-text-primary">选择语言</h2><div class="grid grid-cols-3 gap-2"><button v-for="item in languages" :key="item.value" class="rounded-xl border px-2 py-3 text-xs" :class="locale === item.value ? 'theme-selected-surface' : 'theme-btn-secondary'" @click="locale=item.value">{{ item.label }}</button></div></section>
+      <CustomerServiceButton class="w-full" />
+    </div>
+    <div v-else class="container relative z-10 mx-auto px-4">
       <CustomerServiceButton class="absolute right-4 top-0 z-20 lg:right-6" />
       <header class="mb-8 rounded-3xl border theme-panel-soft p-6 shadow-xl backdrop-blur-sm lg:p-8">
         <div class="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
@@ -289,6 +298,7 @@ import { getImageUrl } from '../utils/image'
 import { orderStatusClass, orderStatusLabel } from '../utils/status'
 import { pageAlertClass, type PageAlert } from '../utils/alerts'
 import { useUserProfileStore } from '../stores/userProfile'
+import { useUserAuthStore } from '../stores/userAuth'
 import ProfilePanel from './personal/ProfilePanel.vue'
 import SecurityPanel from './personal/SecurityPanel.vue'
 import OrdersPanel from './personal/OrdersPanel.vue'
@@ -307,6 +317,9 @@ const props = withDefaults(defineProps<{ section?: PersonalSection }>(), {
 const router = useRouter()
 const { t, locale } = useI18n()
 const userProfileStore = useUserProfileStore()
+const auth = useUserAuthStore()
+const publicLinks = [{to:'/guest/orders',label:'游客查单',icon:'🧾'},{to:'/notice',label:'公告',icon:'📢'},{to:'/about',label:'关于',icon:'ℹ️'},{to:'/blog',label:'博客',icon:'📝'}]
+const languages = [{value:'zh-CN',label:'简体中文'},{value:'zh-TW',label:'繁體中文'},{value:'en',label:'English'}]
 
 const sectionItems: Array<{ key: PersonalSection; label: string; icon: Component }> = [
   { key: 'overview', label: 'personalCenter.tabs.overview', icon: HomeIcon },
@@ -398,6 +411,6 @@ const initialize = async () => {
 }
 
 onMounted(() => {
-  initialize()
+  if (auth.isAuthenticated) initialize()
 })
 </script>
