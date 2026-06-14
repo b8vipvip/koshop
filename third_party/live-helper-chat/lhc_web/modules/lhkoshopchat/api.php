@@ -13,6 +13,12 @@ if ($expected && !hash_equals('Bearer ' . $expected, $auth)) {
 $action = isset($Params['user_parameters_unordered']['action']) ? $Params['user_parameters_unordered']['action'] : 'conversations';
 $id = isset($Params['user_parameters_unordered']['id']) ? (int)$Params['user_parameters_unordered']['id'] : 0;
 
+function koshopBeijingDate($timestamp, $format = 'm-d H:i') {
+    $dt = new DateTime('@' . (int)$timestamp);
+    $dt->setTimezone(new DateTimeZone('Asia/Shanghai'));
+    return $dt->format($format);
+}
+
 function out($v) {
     echo json_encode($v, JSON_UNESCAPED_UNICODE | JSON_UNESCAPED_SLASHES);
     exit;
@@ -153,7 +159,7 @@ function chatItem($c) {
         'buyerAvatar' => $avatar,
         'avatar' => $avatar,
         'lastMessage' => $last,
-        'lastMessageAt' => date('H:i', (int)$c->time),
+        'lastMessageAt' => koshopBeijingDate((int)$c->time, 'H:i'),
         'unread' => (int)$c->user_status === 0,
         'unreadCount' => (int)$c->user_status === 0 ? 1 : 0,
         'status' => $status === 2 ? 'closed' : ($status === 0 ? 'pending' : 'active'),
@@ -286,7 +292,7 @@ try {
                 'id' => (int)$m->id,
                 'sender' => $sender,
                 'content' => $m->msg,
-                'createdAt' => date('m-d H:i', (int)$m->time),
+                'createdAt' => koshopBeijingDate((int)$m->time, 'm-d H:i'),
                 'read' => (int)koshopSafeProp($m, 'user_id', 0) === 0,
                 'senderName' => $sender === 'seller' ? $sellerName : koshopBuyerName($c),
                 'senderAvatar' => $sender === 'seller' ? '' : koshopBuyerAvatar($c),
