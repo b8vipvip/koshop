@@ -26,7 +26,8 @@ if grep -q '^apps/koshop-seller-console/' <<<"$changed"; then
   install -d -m 750 /etc/koshop; touch /etc/koshop/seller-bff.env; chmod 640 /etc/koshop/seller-bff.env
   ensure_env(){ grep -q "^$1=" /etc/koshop/seller-bff.env || printf '%s=%s\n' "$1" "$2" >> /etc/koshop/seller-bff.env; }
   ensure_env DUJIAO_API_BASE http://127.0.0.1:8080
-  for key in DUJIAO_ADMIN_TOKEN DUJIAO_ADMIN_USERNAME DUJIAO_ADMIN_PASSWORD DUJIAO_DASHBOARD_PATH DUJIAO_PRODUCTS_PATH DUJIAO_PRODUCT_DETAIL_PATH DUJIAO_ORDERS_PATH DUJIAO_ORDER_DETAIL_PATH DUJIAO_FINANCE_PATH DUJIAO_SETTINGS_PATH; do ensure_env "$key" ''; done
-  echo '[koshop] configure empty Dujiao Admin credentials in /etc/koshop/seller-bff.env when required'; systemctl restart koshop-seller-bff
-  for path in health dashboard 'orders?page=1&pageSize=5' 'products?page=1&pageSize=5' 'finance?page=1&pageSize=5'; do curl -sS "http://127.0.0.1:18100/api/koshop-seller/$path" | head -c 500; echo; done
+  for key in DUJIAO_ADMIN_TOKEN SELLER_SESSION_FILE SELLER_SESSION_TTL_SECONDS DUJIAO_DASHBOARD_PATH DUJIAO_PRODUCTS_PATH DUJIAO_PRODUCT_DETAIL_PATH DUJIAO_ORDERS_PATH DUJIAO_ORDER_DETAIL_PATH DUJIAO_FINANCE_PATH DUJIAO_SETTINGS_PATH; do ensure_env "$key" ''; done
+  install -d -m 700 /var/lib/koshop-seller-bff
+  echo '[koshop] Dujiao Admin token is optional; sign in through the seller console'; systemctl restart koshop-seller-bff
+  for path in health auth/me; do curl -sS "http://127.0.0.1:18100/api/koshop-seller/$path" | head -c 500; echo; done
 fi
