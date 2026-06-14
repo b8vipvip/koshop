@@ -236,6 +236,7 @@ const onCompositionEnd = (event: CompositionEvent) => {
 
 const appendEmoji = (value: string) => {
   draft.value += value
+  emoji.value = false
   more.value = false
 }
 
@@ -270,6 +271,9 @@ const request = async (action: string, options: RequestInit = {}) => {
 }
 
 const tool = (x: string) => {
+  more.value = false
+  emoji.value = false
+
   if (x === '拍照') {
     camera.value?.click()
   } else if (x === '照片') {
@@ -308,6 +312,8 @@ const upload = async (e: Event, type: string) => {
   } catch (err: any) {
     status.value = err.message || '上传失败，请重试'
   } finally {
+    emoji.value = false
+    more.value = false
     el.value = ''
   }
 }
