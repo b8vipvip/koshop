@@ -508,6 +508,7 @@ const formatPromotionRule = (rule: any) => {
 
 const loading = ref(true)
 const product = ref<any>(null)
+watch(product, value => { if (value?.id) localStorage.setItem('koshop_last_product', JSON.stringify({id:value.id,title:typeof value.title==='object'?(value.title['zh-CN']||Object.values(value.title)[0]):value.title,price:value.price_amount||value.price||'0.00',cover:Array.isArray(value.images)?value.images[0]:'',url:location.href})) })
 const relatedPosts = computed<any[]>(() => product.value?.related_posts || [])
 const formatRelatedPostDate = (dateString: string) => {
   if (!dateString) return ''

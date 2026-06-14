@@ -50,7 +50,7 @@
                 </a>
                 <video v-else-if="message.type==='video'" :src="message.url" :poster="message.thumbnailUrl" controls preload="metadata" class="max-w-full rounded-lg"></video>
                 <a v-else-if="message.type==='file'" :href="message.url" target="_blank">📎 {{message.fileName||message.content}}</a>
-                <template v-else>{{ message.content }}</template>
+                <div v-else-if="message.type==='product_card'" class="text-left"><img v-if="message.card?.cover" :src="message.card.cover" class="mb-2 max-h-32 rounded"><b>{{message.card?.title}}</b><p>¥{{message.card?.price}}</p><button class="underline" @click="openCard(message.card?.url)">查看商品</button></div><div v-else-if="message.type==='order_card'" class="text-left"><b>订单 {{message.card?.orderNo}}</b><p>{{message.card?.productTitle}}</p><p>¥{{message.card?.amount}} · {{message.card?.statusText}}</p><p>{{message.card?.createdAt}}</p><button class="underline" @click="openOrder(message.card)">查看订单</button></div><template v-else>{{ message.content }}</template>
               </div>
               <p v-if="message.sender === 'buyer'" class="mt-1 text-right text-xs text-gray-400">{{ message.readText || (message.read ? '已读' : '未读') }}</p>
             </div>
@@ -75,6 +75,8 @@
               </button>
             </div>
           </div>
+
+          <div v-if="picker" class="mb-2 max-h-72 overflow-y-auto rounded-xl bg-white p-3 shadow"><b>{{picker==='products'?'选择商品':'选择订单'}}</b><button v-for="x in choices" :key="x.id" class="mt-2 block w-full rounded-lg bg-slate-100 p-3 text-left" @click="sendCard(x)"><b>{{picker==='products'?x.title:x.orderNo}}</b><p>{{picker==='products'?'¥'+x.price:(x.productTitle+' · ¥'+x.amount+' · '+x.statusText)}}</p></button></div>
 
           <div v-if="more" class="mb-2 rounded-xl bg-white p-3 shadow-[0_-2px_12px_rgba(0,0,0,.06)]">
             <div class="grid grid-cols-4 gap-3 text-center">
@@ -152,6 +154,7 @@ import { useUserAuthStore } from '../stores/userAuth'
 import { compressImage, getVideoThumbnail } from '../utils/chatMedia'
 
 type Message = {
+  card?: any
   id: number | string
   sender: 'buyer' | 'seller'
   type?: string
@@ -177,7 +180,8 @@ const messages = ref<Message[]>([])
 const status = ref('正在连接店铺客服…')
 const list = ref<HTMLElement | null>(null)
 
-const tools = [
+const context = ref<any>({}); const choices=ref<any[]>([]); const picker=ref('')
+const baseTools = [
   { name: '拍照', icon: '📷' },
   { name: '照片', icon: '🖼️' },
   { name: '语音', icon: '🎤' },
@@ -188,6 +192,7 @@ const tools = [
   { name: '文件', icon: '📁' }
 ]
 
+const tools=computed(()=>baseTools.filter(x=>x.name!=='商品'||context.value.product).filter(x=>x.name!=='订单'||context.value.hasOrders))
 const emojis = ['😀','😃','😄','😁','😆','😂','😊','😍','😘','😎','😭','😡','👍','👎','🙏','🎉','❤️']
 
 const camera = ref<HTMLInputElement>()
@@ -280,9 +285,7 @@ const tool = (x: string) => {
     image.value?.click()
   } else if (x === '视频') {
     video.value?.click()
-  } else {
-    soon()
-  }
+  } else if (x === '商品' || x === '订单') { void openPicker(x === '商品' ? 'products' : 'orders') } else { soon() }
 }
 
 const upload = async (e: Event, type: string) => {
@@ -368,7 +371,7 @@ const start = async () => {
         body: JSON.stringify({
           name: buyerName.value,
           avatar: auth.user?.avatar_url || '',
-          userId: auth.user?.id || ''
+          userId: auth.user?.id || '', browserId: browserId(), product: recentProduct(), guestOrderIds: guestOrderIds()
         })
       })
 
@@ -377,6 +380,7 @@ const start = async () => {
       localStorage.setItem('koshop_public_chat', JSON.stringify(data.session))
     }
 
+    await loadContext()
     await load()
 
     if (open.value) {
@@ -437,6 +441,16 @@ const send = async (canRebuildSession: boolean | Event = true) => {
     status.value = '消息发送失败，请稍后重试'
   }
 }
+
+
+const browserId=()=>{let x=localStorage.getItem('koshop_browser_id');if(!x){x=crypto.randomUUID();localStorage.setItem('koshop_browser_id',x)}return x}
+const recentProduct=()=>{try{return JSON.parse(localStorage.getItem('koshop_last_product')||'null')}catch{return null}}
+const guestOrderIds=()=>{try{return JSON.parse(localStorage.getItem('koshop_guest_order_ids')||'[]')}catch{return []}}
+async function loadContext(){try{context.value=await request('context')}catch{context.value={}}}
+async function openPicker(kind:string){try{const d=await request(kind);choices.value=d.items||[];picker.value=kind}catch{picker.value=''}}
+async function sendCard(x:any){const product=picker.value==='products';const payload=product?{koshopType:'product_card',productId:x.id,title:x.title,price:x.price,cover:x.cover,url:x.url,text:`[商品] ${x.title}`}:{koshopType:'order_card',orderId:x.id,orderNo:x.orderNo,productTitle:x.productTitle,amount:x.amount,statusText:x.statusText,createdAt:x.createdAt,text:`[订单] ${x.orderNo}`};const d=await request('send-card',{method:'POST',body:JSON.stringify(payload)});messages.value.push(d.message);picker.value='';await scroll()}
+function openCard(url:string){if(url){close();location.href=url}}
+function openOrder(card:any){close();void router.push(auth.isAuthenticated?`/me/orders/${card.id}`:`/guest/orders/${card.orderNo}`)}
 
 const soon = () => alert('该功能即将上线')
 
