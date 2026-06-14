@@ -1,7 +1,7 @@
 <template>
   <Teleport to="body">
-    <div v-if="open" class="fixed inset-0 z-[100] flex items-end justify-center bg-black/30 lg:items-center lg:p-6">
-      <section :style="{ height: chatViewportHeight }" class="flex w-full flex-col overflow-hidden bg-[#f3f5f7] text-[15px] text-slate-900 lg:max-h-[90vh] lg:max-w-[460px] lg:rounded-3xl">
+    <div v-if="open" class="koshop-chat-overlay fixed inset-0 z-[100] flex items-end justify-center bg-black/30 lg:items-center lg:p-6">
+      <section :style="{ height: chatViewportHeight }" class="koshop-chat-panel flex w-full flex-col overflow-hidden bg-[#f3f5f7] text-[15px] text-slate-900 lg:max-h-[90vh] lg:max-w-[460px] lg:rounded-3xl">
         <header class="flex items-center gap-3 border-b border-slate-200 bg-white px-4 py-3">
           <button class="flex h-10 w-10 items-center justify-center text-4xl leading-none" @click="close">‹</button>
           <div class="min-w-0 flex-1">
@@ -43,7 +43,7 @@
 
               <div
                 class="rounded-2xl px-3.5 py-2.5 text-[15px] leading-6 shadow-sm"
-                :class="message.sender === 'buyer' ? 'bg-orange-500 text-white' : 'bg-white text-slate-900'"
+                :class="message.sender === 'buyer' ? 'koshop-buyer-bubble bg-orange-500 text-white' : 'koshop-seller-bubble bg-white text-slate-900'"
               >
                 <a v-if="message.type==='image'" :href="message.url" target="_blank">
                   <img :src="message.thumbnailUrl || message.url" class="max-h-60 max-w-full rounded-lg" alt="图片">
@@ -94,7 +94,7 @@
           <form class="grid grid-cols-[46px_minmax(0,1fr)_46px_56px] items-center gap-2" @submit.prevent="send">
             <button
               type="button"
-              class="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-2xl"
+              class="koshop-chat-icon-btn flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-2xl"
               @click="soon"
             >
               🎙
@@ -106,13 +106,13 @@
               @input="onDraftInput"
               @compositionstart="isComposing = true"
               @compositionend="onCompositionEnd"
-              class="h-11 min-w-0 rounded-xl bg-gray-100 px-3 text-[15px] outline-none"
+              class="koshop-chat-input h-11 min-w-0 rounded-xl bg-gray-100 px-3 text-[15px] outline-none"
               placeholder="输入消息"
             >
 
             <button
               type="button"
-              class="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-2xl"
+              class="koshop-chat-icon-btn flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-2xl"
               @click="emoji=!emoji;more=false"
             >
               😊
@@ -121,7 +121,7 @@
             <button
               v-if="hasDraft"
               type="submit"
-              class="h-11 rounded-xl bg-orange-500 px-3 text-[15px] font-bold text-white"
+              class="koshop-chat-send h-11 rounded-xl bg-orange-500 px-3 text-[15px] font-bold text-white"
             >
               发送
             </button>
@@ -129,7 +129,7 @@
             <button
               v-else
               type="button"
-              class="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-3xl leading-none"
+              class="koshop-chat-plus koshop-chat-icon-btn flex h-11 w-11 items-center justify-center rounded-xl bg-slate-100 text-3xl leading-none"
               @click="more=!more;emoji=false"
             >
               ＋
@@ -445,3 +445,129 @@ onBeforeUnmount(() => {
   close()
 })
 </script>
+
+<style scoped>
+/* KOSHOP_CHAT_COLOR_CONTRAST_FIX_V1 */
+.koshop-chat-overlay,
+.koshop-chat-overlay * {
+  color-scheme: light !important;
+  forced-color-adjust: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.koshop-chat-panel {
+  background: #f3f5f7 !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827;
+}
+
+.koshop-chat-panel header,
+.koshop-chat-panel footer {
+  background: #ffffff !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827;
+}
+
+.koshop-buyer-bubble {
+  background: #ff6a00 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+}
+
+.koshop-buyer-bubble *:not(img):not(video) {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+}
+
+.koshop-seller-bubble {
+  background: #ffffff !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  opacity: 1 !important;
+}
+
+.koshop-seller-bubble *:not(img):not(video) {
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.koshop-chat-input {
+  background: #f1f2f6 !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  caret-color: #ff6a00 !important;
+  opacity: 1 !important;
+  border: 0 !important;
+  outline: none !important;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.koshop-chat-input::placeholder {
+  color: #8b95a1 !important;
+  -webkit-text-fill-color: #8b95a1 !important;
+  opacity: 1 !important;
+}
+
+.koshop-chat-send {
+  background: #ff6a00 !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  border: 0 !important;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+.koshop-chat-icon-btn,
+.koshop-chat-plus {
+  background: #f1f5f9 !important;
+  color: #111827 !important;
+  -webkit-text-fill-color: #111827 !important;
+  opacity: 1 !important;
+  border: 0 !important;
+  appearance: none;
+  -webkit-appearance: none;
+}
+
+@media (prefers-color-scheme: dark) {
+  .koshop-chat-panel {
+    background: #f3f5f7 !important;
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827;
+  }
+
+  .koshop-chat-panel header,
+  .koshop-chat-panel footer {
+    background: #ffffff !important;
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827;
+  }
+
+  .koshop-chat-input {
+    background: #f1f2f6 !important;
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
+  }
+
+  .koshop-chat-send {
+    background: #ff6a00 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+
+  .koshop-buyer-bubble {
+    background: #ff6a00 !important;
+    color: #ffffff !important;
+    -webkit-text-fill-color: #ffffff !important;
+  }
+
+  .koshop-seller-bubble {
+    background: #ffffff !important;
+    color: #111827 !important;
+    -webkit-text-fill-color: #111827 !important;
+  }
+}
+</style>
