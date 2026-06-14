@@ -45,13 +45,11 @@ import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useCartStore } from '../stores/cart'
-import { useUserAuthStore } from '../stores/userAuth'
 import { useAppStore } from '../stores/app'
 
 const route = useRoute()
 const { t } = useI18n()
 const cartStore = useCartStore()
-const userAuthStore = useUserAuthStore()
 const appStore = useAppStore()
 
 const cartCount = computed(() => cartStore.totalItems)
