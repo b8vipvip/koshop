@@ -1,5 +1,44 @@
-import{ref}from'vue';import{navigate}from'./router';
-export const authReady=ref(false),currentUser=ref<any>(null),authMessage=ref('');
-const originalFetch=window.fetch.bind(window);window.fetch=async(input,init)=>{const response=await originalFetch(input,init);const url=typeof input==='string'?input:input instanceof URL?input.href:input.url;if(response.status===401&&url.includes('/api/koshop-seller/')&&!url.includes('/auth/')){currentUser.value=null;authMessage.value='登录已过期，请重新登录';navigate('/login')}return response};
-export async function checkAuth(){try{const r=await originalFetch('/api/koshop-seller/auth/me'),j=await r.json();currentUser.value=r.ok?j.user:null}catch{currentUser.value=null}finally{authReady.value=true}if(!currentUser.value&&location.pathname!='/login')navigate('/login');if(currentUser.value&&location.pathname==='/login')navigate('/')}
-export async function logout(){await originalFetch('/api/koshop-seller/auth/logout',{method:'POST'});currentUser.value=null;navigate('/login')}
+import {ref} from 'vue'
+import {navigate} from './router'
+
+export const authReady=ref(false)
+export const currentUser=ref<any>(null)
+export const authMessage=ref('')
+
+const originalFetch=window.fetch.bind(window)
+
+function withCredentials(init?:RequestInit):RequestInit{
+  return {credentials:'include',...(init||{})}
+}
+
+window.fetch=async(input,init)=>{
+  const response=await originalFetch(input,withCredentials(init))
+  const url=typeof input==='string'?input:input instanceof URL?input.href:input.url
+  if(response.status===401&&url.includes('/api/koshop-seller/')&&!url.includes('/auth/')){
+    currentUser.value=null
+    authMessage.value='登录已过期，请重新登录'
+    navigate('/login')
+  }
+  return response
+}
+
+export async function checkAuth(){
+  try{
+    const r=await originalFetch('/api/koshop-seller/auth/me',withCredentials())
+    const j=await r.json().catch(()=>({}))
+    currentUser.value=r.ok?j.user:null
+  }catch{
+    currentUser.value=null
+  }finally{
+    authReady.value=true
+  }
+
+  if(!currentUser.value&&location.pathname!='/login')navigate('/login')
+  if(currentUser.value&&location.pathname==='/login')navigate('/')
+}
+
+export async function logout(){
+  await originalFetch('/api/koshop-seller/auth/logout',withCredentials({method:'POST'}))
+  currentUser.value=null
+  navigate('/login')
+}
