@@ -136,38 +136,10 @@ function koshopAutoAcceptChat($c, $sellerName = 'admin') {
     } catch (Throwable $e) {}
 }
 
-function chatItem($c) {
-    $last = '';
-    try {
-        $msgs = erLhcoreClassModelmsg::getList(array(
-            'filter' => array('chat_id' => $c->id),
-            'sort' => 'id DESC',
-            'limit' => 1
-        ));
-        if ($msgs) {
-            $m = reset($msgs);
-            $last = (string)$m->msg;
-        }
-    } catch (Throwable $e) {}
-
-    $avatar = koshopBuyerAvatar($c);
-    $status = (int)koshopSafeProp($c, 'status', 0);
-
-    return array(
-        'id' => (int)$c->id,
-        'buyerName' => koshopBuyerName($c),
-        'buyerAvatar' => $avatar,
-        'avatar' => $avatar,
-        'lastMessage' => $last,
-        'lastMessageAt' => koshopBeijingDate((int)$c->time, 'H:i'),
-        'unread' => (int)$c->user_status === 0,
-        'unreadCount' => (int)$c->user_status === 0 ? 1 : 0,
-        'status' => $status === 2 ? 'closed' : ($status === 0 ? 'pending' : 'active'),
-        'orderStatus' => orderStatus($c->id),
-        'isStarred' => false,
-        'isPinned' => false
-    );
-}
+function koshopLastMessage($id) { try { $x=erLhcoreClassModelmsg::getList(array('filter'=>array('chat_id'=>$id),'sort'=>'id DESC','limit'=>1)); return $x?reset($x):null; } catch(Throwable $e){ return null; } }
+function koshopUnreadBuyerCount($c) { if ((int)koshopSafeProp($c,'user_status',1)!==0) return 0; $last=koshopLastMessage($c->id); if (!$last || koshopMessageSender($last)!=='buyer') return 0; $count=0; try { foreach(erLhcoreClassModelmsg::getList(array('filter'=>array('chat_id'=>$c->id),'sort'=>'id DESC','limit'=>500)) as $m){ if(koshopMessageSender($m)==='seller') break; $count++; } } catch(Throwable $e){} return max(1,$count); }
+function koshopMessageItem($m,$c,$sellerAvatar='') { $sender=koshopMessageSender($m);$sellerName=trim((string)koshopSafeProp($m,'name_support',''))?:'店铺客服';return array('id'=>(int)$m->id,'sender'=>$sender,'content'=>(string)$m->msg,'createdAt'=>koshopBeijingDate((int)$m->time),'createdAtText'=>koshopBeijingDate((int)$m->time,'Y-m-d H:i:s'),'read'=>$sender==='buyer','senderName'=>$sender==='seller'?$sellerName:koshopBuyerName($c),'senderAvatar'=>$sender==='seller'?$sellerAvatar:koshopBuyerAvatar($c),'buyerName'=>koshopBuyerName($c),'buyerAvatar'=>koshopBuyerAvatar($c),'sellerName'=>$sellerName,'sellerAvatar'=>$sellerAvatar); }
+function chatItem($c) { $last=koshopLastMessage($c->id);$avatar=koshopBuyerAvatar($c);$status=(int)koshopSafeProp($c,'status',0);$unreadCount=koshopUnreadBuyerCount($c);$t=$last?(int)$last->time:(int)$c->time;return array('id'=>(int)$c->id,'buyerName'=>koshopBuyerName($c),'buyerAvatar'=>$avatar,'avatar'=>$avatar,'lastMessage'=>$last?(string)$last->msg:'','lastMessageAt'=>$t?koshopBeijingDate($t,'H:i'):'','unread'=>$unreadCount>0,'unreadCount'=>$unreadCount,'status'=>$status===2?'closed':($status===0?'pending':'active'),'orderStatus'=>orderStatus($c->id),'isStarred'=>false,'isPinned'=>false);}
 
 try {
     if ($action === 'unread') {
@@ -250,26 +222,11 @@ try {
             $c->last_msg_id = $m->id;
             $c->last_op_msg_time = time();
             $c->time = time();
+            $c->user_status = 1;
             $c->updateThis();
         } catch (Throwable $e) {}
 
-        out(array(
-            'ok' => true,
-            'message' => array(
-                'id' => (int)$m->id,
-                'sender' => 'seller',
-                'content' => $content,
-                'createdAt' => '刚刚',
-                'read' => false,
-                'senderName' => $sellerName,
-                'senderAvatar' => $sellerAvatar,
-                'buyerName' => koshopBuyerName($c),
-                'buyerAvatar' => koshopBuyerAvatar($c),
-                'sellerName' => $sellerName,
-                'sellerAvatar' => $sellerAvatar
-            )
-        ));
-    }
+        out(array('ok' => true, 'message' => koshopMessageItem($m, $c, $sellerAvatar)));    }
 
     if ($action === 'messages') {
         /*
@@ -285,22 +242,7 @@ try {
             'sort' => 'id ASC',
             'limit' => 500
         )) as $m) {
-            $sender = koshopMessageSender($m);
-            $sellerName = trim((string)koshopSafeProp($m, 'name_support', '')) ?: 'admin';
-
-            $items[] = array(
-                'id' => (int)$m->id,
-                'sender' => $sender,
-                'content' => $m->msg,
-                'createdAt' => koshopBeijingDate((int)$m->time, 'm-d H:i'),
-                'read' => (int)koshopSafeProp($m, 'user_id', 0) === 0,
-                'senderName' => $sender === 'seller' ? $sellerName : koshopBuyerName($c),
-                'senderAvatar' => $sender === 'seller' ? '' : koshopBuyerAvatar($c),
-                'buyerName' => koshopBuyerName($c),
-                'buyerAvatar' => koshopBuyerAvatar($c),
-                'sellerName' => $sellerName,
-                'sellerAvatar' => ''
-            );
+            $items[] = koshopMessageItem($m, $c);
         }
 
         out(array('ok' => true, 'items' => $items));
@@ -320,6 +262,7 @@ try {
             } catch (Throwable $e2) {}
         }
 
+        try { $c->user_status = 1; foreach (array('has_unread_messages','has_unread_op_messages') as $p) { try { $c->$p = 0; } catch (Throwable $e) {} } $c->updateThis(); } catch (Throwable $e) {}
         out(array('ok' => true));
     }
 
