@@ -46,9 +46,9 @@
                 :class="message.sender === 'buyer' ? 'bg-orange-500 text-white' : 'bg-white text-slate-900'"
               >
                 <a v-if="message.type==='image'" :href="message.url" target="_blank">
-                  <img :src="message.url" class="max-h-60 max-w-full rounded-lg" alt="图片">
+                  <img :src="message.thumbnailUrl || message.url" class="max-h-60 max-w-full rounded-lg" alt="图片">
                 </a>
-                <video v-else-if="message.type==='video'" :src="message.url" controls preload="metadata" class="max-w-full rounded-lg"></video>
+                <video v-else-if="message.type==='video'" :src="message.url" :poster="message.thumbnailUrl" controls preload="metadata" class="max-w-full rounded-lg"></video>
                 <a v-else-if="message.type==='file'" :href="message.url" target="_blank">📎 {{message.fileName||message.content}}</a>
                 <template v-else>{{ message.content }}</template>
               </div>
@@ -145,6 +145,7 @@
 import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import { useRouter } from 'vue-router'
 import { useUserAuthStore } from '../stores/userAuth'
+import { compressImage, getVideoThumbnail } from '../utils/chatMedia'
 
 type Message = {
   id: number | string
@@ -152,6 +153,7 @@ type Message = {
   type?: string
   content: string
   url?: string
+  thumbnailUrl?: string
   fileName?: string
 }
 
@@ -244,8 +246,12 @@ const upload = async (e: Event, type: string) => {
     return
   }
 
+  status.value = '正在上传...'
+  const uploadFile = type === 'image' ? await compressImage(f) : f
+  const thumbnail = type === 'video' ? await getVideoThumbnail(f) : null
   const fd = new FormData()
-  fd.append('file', f)
+  fd.append('file', uploadFile, f.name)
+  if (thumbnail) fd.append('thumbnail', thumbnail, `${f.name}.thumbnail.jpg`)
   fd.append('type', type)
 
   try {
