@@ -16,7 +16,7 @@ $ViewList['dashboard'] = array(
 );
 
 $ViewList['api'] = array('params' => array(), 'uparams' => array('action', 'id'));
-$ViewList['public'] = array('params' => array(), 'uparams' => array('action'));
+$ViewList['public'] = array('params' => array('action'), 'uparams' => array('id','hash'));
 
 $FunctionList = array();
 $FunctionList['use'] = array('explain' => '允许客服使用 Koshop 客服工作台');

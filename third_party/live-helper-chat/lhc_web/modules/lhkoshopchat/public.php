@@ -5,7 +5,28 @@ function pout($v,$code=200){http_response_code($code);echo json_encode($v,JSON_U
 function bj($t,$f='m-d H:i'){$d=new DateTime('@'.(int)$t);$d->setTimezone(new DateTimeZone('Asia/Shanghai'));return $d->format($f);} function vars($c){$v=json_decode((string)safe($c,'chat_variables',''),true);return is_array($v)?$v:array();} function sender($m){return (int)safe($m,'user_id',0)>0||trim((string)safe($m,'name_support',''))!==''?'seller':'buyer';}
 function messageItem($m,$c){$v=vars($c);$s=sender($m);$bn=trim((string)($v['koshop_buyer_name']??''))?:((string)safe($c,'nick','访客'));$ba=(string)($v['koshop_buyer_avatar']??'');$sn=trim((string)safe($m,'name_support',''))?:'店铺客服';return array('id'=>(int)$m->id,'sender'=>$s,'content'=>(string)$m->msg,'createdAt'=>bj($m->time),'createdAtText'=>bj($m->time,'Y-m-d H:i:s'),'senderName'=>$s==='seller'?$sn:$bn,'senderAvatar'=>$s==='seller'?'':$ba,'buyerName'=>$bn,'buyerAvatar'=>$ba,'sellerName'=>$sn,'sellerAvatar'=>'');}
 function setprop($o,$n,$v){try{$o->$n=$v;}catch(Throwable $e){}}
-$action=$Params['user_parameters_unordered']['action']??'start';$id=(int)($_GET['id']??0);$hash=(string)($_GET['hash']??'');
+function koshopPublicAction($Params) {
+    if (isset($Params['user_parameters']['action']) && $Params['user_parameters']['action'] !== '') {
+        return (string)$Params['user_parameters']['action'];
+    }
+
+    if (isset($Params['user_parameters_unordered']['action']) && $Params['user_parameters_unordered']['action'] !== '') {
+        return (string)$Params['user_parameters_unordered']['action'];
+    }
+
+    $uri = isset($_SERVER['REQUEST_URI']) ? (string)$_SERVER['REQUEST_URI'] : '';
+
+    if (preg_match('#/koshopchat/public/(start|send|messages)(?:[/?#]|$)#', $uri, $m)) {
+        return $m[1];
+    }
+
+    if (preg_match('#/koshopchat/public/\(action\)/(start|send|messages)(?:[/?#]|$)#', $uri, $m)) {
+        return $m[1];
+    }
+
+    return 'start';
+}
+$action=koshopPublicAction($Params);$id=(int)($_GET['id']??0);$hash=(string)($_GET['hash']??'');
 try{if($action==='start'){$b=pbody();$name=trim((string)($b['name']??''))?:'访客';$avatar=trim((string)($b['avatar']??''));$uid=(string)($b['userId']??'');$c=new erLhcoreClassModelChat();$c->nick=$name;$c->hash=bin2hex(random_bytes(20));$c->time=time();$c->status=1;$c->user_id=1;$c->dep_id=1;$c->user_status=1;$identity=array('koshop_buyer_name'=>$name,'koshop_buyer_avatar'=>$avatar,'koshop_user_id'=>$uid);$c->identifier='koshop:'.base64_encode(json_encode($identity));$c->chat_variables=json_encode($identity);$c->saveThis();pout(array('ok'=>true,'session'=>array('id'=>(int)$c->id,'hash'=>$c->hash)));}
 $c=erLhcoreClassModelChat::fetch($id);if(!$c||$hash===''||!hash_equals((string)$c->hash,$hash))pout(array('ok'=>false,'message'=>'会话无效'),403);
 if($action==='send'){$content=trim((string)(pbody()['content']??''));if($content==='')pout(array('ok'=>false,'message'=>'消息不能为空'),422);$now=time();$m=new erLhcoreClassModelmsg();$m->chat_id=$id;$m->user_id=0;$m->time=$now;$m->msg=$content;$m->saveThis();$c->last_msg_id=$m->id;$c->time=$now;$c->user_status=0;$c->status=1;foreach(array('has_unread_messages','has_unread_op_messages','last_user_msg_time','pnd_time') as $p)setprop($c,$p,$p==='last_user_msg_time'||$p==='pnd_time'?$now:1);$c->updateThis();pout(array('ok'=>true,'message'=>messageItem($m,$c)));}
