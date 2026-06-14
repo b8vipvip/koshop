@@ -117,3 +117,4 @@
   }
 }
 /* KOSHOP_CHAT_COMPOSER_LAYOUT_FIX_V1_END */
+.filters{display:flex;gap:8px;margin:14px 0}.filters input,.filters select{min-width:0;flex:1;border:1px solid #ddd;border-radius:9px;padding:10px}.filters button,.error-state button{border:0;border-radius:9px;background:#3478f6;color:#fff;padding:10px 16px}.records{display:grid;gap:10px}.records article{display:flex;justify-content:space-between;gap:12px;background:#fff;border-radius:14px;padding:15px}.records article>div{display:grid;gap:6px}.records article>div:last-child{text-align:right}.records small{color:#888}.records span{color:#3478f6}.detail p{display:flex;justify-content:space-between;gap:20px;border-bottom:1px solid #eee;padding:10px 0}.detail span{text-align:right;overflow-wrap:anywhere}.summary{margin:14px 0}.error-state{text-align:center}
