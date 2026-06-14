@@ -143,7 +143,10 @@ function chatItem($c) { $last=koshopLastMessage($c->id);$avatar=koshopBuyerAvata
 
 try {
     if ($action === 'unread') {
-        $count = erLhcoreClassModelChat::getCount(array('filter' => array('user_status' => 0)));
+        $count = 0;
+        foreach (erLhcoreClassModelChat::getList(array('filter' => array('user_status' => 0), 'limit' => 1000)) as $unreadChat) {
+            $count += koshopUnreadBuyerCount($unreadChat);
+        }
         out(array('ok' => true, 'count' => (int)$count));
     }
 
